@@ -2,7 +2,7 @@
 
 The jobs listed on seek.com.au usually hide the salary range. You can use salary range search filters, but this is tedious and still vague.
 
-This tool modifies URL parameters and brute-forces the near exact salary range of the job.
+This tool modifies URL parameters and brute-forces the salary range of the job through a binary search algorithm.
 ```
 bash-3.2# ./salary-seeker.sh
     | usage: ./salary-seeker.sh <job id>
