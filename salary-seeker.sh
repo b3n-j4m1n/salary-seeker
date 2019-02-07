@@ -9,7 +9,7 @@ then
 fi
 
 job_id=$1
-salary_var='150000'
+salary_var='200000'
 job_title=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
 
 echo "    | job title: "$job_title
