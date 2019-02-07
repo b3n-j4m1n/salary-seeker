@@ -1,11 +1,11 @@
 #!/bin/bash
 
+job_id=$1
 counter='1'
 response='1'
 lower_limit='30000'
 upper_limit='200000'
 salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
-job_id=$1
 
 if [[ $# = 0 ]]
 then
@@ -18,18 +18,7 @@ fi
 job_title=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
 echo "    | job title: "$job_title
 
-#checking $200000+
-response=$(curl --silent "https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id&salaryrange=$upper_limit-999999" | grep '"totalCount":1' | wc -l)
-if [[ $response -eq '1' ]]
-then
-  echo -e "    | salary range: ""\033[1m""$"$upper_limit"+""\033[0m"
-  exit 0
-fi
-
-#reset response
-response='1'
-
-#find minimum
+#find maximum
 while [[ $counter -lt '19' ]]
 do
   response=$(curl --silent "https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id&salaryrange=$salary_var-$upper_limit" | grep '"totalCount":1' | wc -l)
@@ -55,7 +44,7 @@ lower_limit='30000'
 upper_limit=$salary_max
 salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
 
-#find maximum
+#find minimum
 while [[ $counter -lt '16' ]]
 do
   response=$(curl --silent "https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id&salaryrange=$lower_limit-$salary_var" | grep '"totalCount":1' | wc -l)
@@ -75,4 +64,9 @@ done
 
 salary_min=$salary_var
 
-echo -e "    | salary range: ""\033[1m""$"$salary_min" - ""$"$salary_max"\033[0m"
+if [[ $salary_max -gt '199998' ]]
+then
+  plus='+'
+fi
+
+echo -e "    | salary range: ""\033[1m""$"$salary_min" - ""$"$salary_max$plus"\033[0m"
