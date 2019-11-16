@@ -25,6 +25,11 @@ then
 fi
 
 job_title=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
+if [[ -z $job_title ]]
+then
+  echo "    | job $job_id not found, it may be expired"
+  exit 1
+fi
 echo "    | job title: "$job_title
 keywords=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*$job_id\(.*\)teaser.*/\1/" | cut -d '"' -f 8 | tr -c '[:alnum:]\n\r' '+')
 advertiser_id=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*advertiser\(.*\)description.*/\1/" | cut -d '"' -f 5)
