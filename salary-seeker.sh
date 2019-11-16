@@ -15,15 +15,15 @@ then
   exit 1
 fi
 
-job_title=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
+job_title=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
 echo "    | job title: "$job_title
-keywords=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*$job_id\(.*\)teaser.*/\1/" | cut -d '"' -f 8 | tr -c '[:alnum:]\n\r' '+')
-advertiser_id=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*advertiser\(.*\)description.*/\1/" | cut -d '"' -f 5)
+keywords=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*$job_id\(.*\)teaser.*/\1/" | cut -d '"' -f 8 | tr -c '[:alnum:]\n\r' '+')
+advertiser_id=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*advertiser\(.*\)description.*/\1/" | cut -d '"' -f 5)
 
 #find maximum
 while [[ $counter -lt '19' ]]
 do
-  response=$(curl --silent "https://chalice-search-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$salary_var-$upper_limit" | grep "$job_id" | wc -l)
+  response=$(curl --silent "https://jobsearch-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$salary_var-$upper_limit" | grep "$job_id" | wc -l)
   if [[ $response -eq '1' ]] #if it's found
   then
     lower_limit=$salary_var
@@ -49,7 +49,7 @@ salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
 #find minimum
 while [[ $counter -lt '16' ]]
 do
-  response=$(curl --silent "https://chalice-search-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$lower_limit-$salary_var" | grep "$job_id" | wc -l)
+  response=$(curl --silent "https://jobsearch-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$lower_limit-$salary_var" | grep "$job_id" | wc -l)
   if [[ $response -eq '1' ]] #if it's found
   then
     upper_limit=$salary_var
