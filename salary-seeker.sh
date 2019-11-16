@@ -1,13 +1,22 @@
 #!/bin/bash
 
-job_id=$1
+numeric='^[0-9]+$'
+
+# Allow full URL or numeric id
+if [[ $1 =~ $numeric ]] ; then
+  job_id=$1
+else
+  job_id="${1//[^0-9]/}"
+fi
+
 counter='1'
 response='1'
 lower_limit='30000'
 upper_limit='200000'
 salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
 
-if [[ $# = 0 ]]
+# Check at least 1 parameter has been passed and it's numeric
+if [[ $# = 0 ]] || ! [[ $job_id =~ $numeric ]]
 then
   echo "    | usage: ./salary-seeker.sh <job id>"
   echo "    | job id can be found in the URL of the job, e.g. https://www.seek.com.au/job/38035537 <--- here"
