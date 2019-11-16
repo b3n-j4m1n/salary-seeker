@@ -18,9 +18,13 @@ salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
 # Check at least 1 parameter has been passed and it's numeric
 if [[ $# = 0 ]] || ! [[ $job_id =~ $numeric ]]
 then
-  echo "    | usage: ./salary-seeker.sh <job id>"
+  echo "    | usage: $0 <job id or url>"
   echo "    | job id can be found in the URL of the job, e.g. https://www.seek.com.au/job/38035537 <--- here"
-  echo "    | example: ./salary-seeker.sh 38035537"
+  echo "    |"
+  echo "    | examples:"
+  echo "    | $0 38035537"
+  echo "    | $0 https://www.seek.com.au/job/38035537"
+  echo "    | $0 https://www.seek.com.au/job/38035537?ref=applied"
   exit 1
 fi
 
