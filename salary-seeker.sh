@@ -1,29 +1,47 @@
 #!/bin/bash
 
-job_id=$1
+numeric='^[0-9]+$'
+
+# Allow full URL or numeric id
+if [[ $1 =~ $numeric ]] ; then
+  job_id=$1
+else
+  job_id="${1//[^0-9]/}"
+fi
+
 counter='1'
 response='1'
 lower_limit='30000'
 upper_limit='200000'
 salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
 
-if [[ $# = 0 ]]
+# Check at least 1 parameter has been passed and it's numeric
+if [[ $# = 0 ]] || ! [[ $job_id =~ $numeric ]]
 then
-  echo "    | usage: ./salary-seeker.sh <job id>"
+  echo "    | usage: $0 <job id or url>"
   echo "    | job id can be found in the URL of the job, e.g. https://www.seek.com.au/job/38035537 <--- here"
-  echo "    | example: ./salary-seeker.sh 38035537"
+  echo "    |"
+  echo "    | examples:"
+  echo "    | $0 38035537"
+  echo "    | $0 https://www.seek.com.au/job/38035537"
+  echo "    | $0 https://www.seek.com.au/job/38035537?ref=applied"
   exit 1
 fi
 
-job_title=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
+job_title=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
+if [[ -z $job_title ]]
+then
+  echo "    | job $job_id not found, it may be expired"
+  exit 1
+fi
 echo "    | job title: "$job_title
-keywords=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*$job_id\(.*\)teaser.*/\1/" | cut -d '"' -f 8 | tr -c '[:alnum:]\n\r' '+')
-advertiser_id=$(curl --silent https://chalice-search-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*advertiser\(.*\)description.*/\1/" | cut -d '"' -f 5)
+keywords=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*$job_id\(.*\)teaser.*/\1/" | cut -d '"' -f 8 | tr -c '[:alnum:]\n\r' '+')
+advertiser_id=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*advertiser\(.*\)description.*/\1/" | cut -d '"' -f 5)
 
 #find maximum
 while [[ $counter -lt '19' ]]
 do
-  response=$(curl --silent "https://chalice-search-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$salary_var-$upper_limit" | grep "$job_id" | wc -l)
+  response=$(curl --silent "https://jobsearch-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$salary_var-$upper_limit" | grep "$job_id" | wc -l)
   if [[ $response -eq '1' ]] #if it's found
   then
     lower_limit=$salary_var
@@ -49,7 +67,7 @@ salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
 #find minimum
 while [[ $counter -lt '16' ]]
 do
-  response=$(curl --silent "https://chalice-search-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$lower_limit-$salary_var" | grep "$job_id" | wc -l)
+  response=$(curl --silent "https://jobsearch-api.cloud.seek.com.au/search?keywords=$keywords&advertiserid=$advertiser_id&sourcesystem=houston&salaryrange=$lower_limit-$salary_var" | grep "$job_id" | wc -l)
   if [[ $response -eq '1' ]] #if it's found
   then
     upper_limit=$salary_var
