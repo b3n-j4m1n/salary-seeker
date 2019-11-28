@@ -1,39 +1,21 @@
 #!/bin/bash
 
-numeric='^[0-9]+$'
-
-# Allow full URL or numeric id
-if [[ $1 =~ $numeric ]] ; then
-  job_id=$1
-else
-  job_id="${1//[^0-9]/}"
-fi
-
+job_id=$1
 counter='1'
 response='1'
 lower_limit='30000'
 upper_limit='200000'
 salary_var=$((lower_limit + (upper_limit - lower_limit) / 2))
 
-# Check at least 1 parameter has been passed and it's numeric
-if [[ $# = 0 ]] || ! [[ $job_id =~ $numeric ]]
+if [[ $# = 0 ]]
 then
-  echo "    | usage: $0 <job id or url>"
+  echo "    | usage: ./salary-seeker.sh <job id>"
   echo "    | job id can be found in the URL of the job, e.g. https://www.seek.com.au/job/38035537 <--- here"
-  echo "    |"
-  echo "    | examples:"
-  echo "    | $0 38035537"
-  echo "    | $0 https://www.seek.com.au/job/38035537"
-  echo "    | $0 https://www.seek.com.au/job/38035537?ref=applied"
+  echo "    | example: ./salary-seeker.sh 38035537"
   exit 1
 fi
 
 job_title=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | tr ',' '\n' | sed 's/{"title":"//g' | grep '"title":"' | cut -d '"' -f 4)
-if [[ -z $job_title ]]
-then
-  echo "    | job $job_id not found, it may be expired"
-  exit 1
-fi
 echo "    | job title: "$job_title
 keywords=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*$job_id\(.*\)teaser.*/\1/" | cut -d '"' -f 8 | tr -c '[:alnum:]\n\r' '+')
 advertiser_id=$(curl --silent https://jobsearch-api.cloud.seek.com.au/search?jobid=$job_id | sed "s/.*advertiser\(.*\)description.*/\1/" | cut -d '"' -f 5)
